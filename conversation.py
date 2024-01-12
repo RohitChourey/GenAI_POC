@@ -7,10 +7,8 @@ import pdf_reader
 import lookup
 import gpt
 
-openai.api_key = os.getenv("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")
 
 if not openai.api_key:
-    openai.api_key = input("Please enter your OpenAI API key: ")
     print()
 
 program_name = sys.argv.pop(0)
