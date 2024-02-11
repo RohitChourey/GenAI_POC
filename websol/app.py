@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import os
 import pdf_reader
-import gpt
-import openai
 import lookup
+import gpt
+import json
+import openai
 
 app = Flask(__name__)
 
@@ -28,24 +29,42 @@ def process_conversation():
     temp_file_path = "temp_upload.pdf"
     pdf_file.save(temp_file_path)
 
+    print(f"Saved PDF to: {temp_file_path}")
+
     # PDF processing and GPT interaction code
     chunks = pdf_reader.chunk_pdf(temp_file_path, 4000, 1000)
     keywords = details_needed.split(",")  # Assuming user provides a comma-separated list of details
     matches = lookup.find_matches(chunks, keywords)
 
-    response = {'answer_found': False, 'response': ''}
+    response = {'fields_and_values': []}
 
     for i, chunk_id in enumerate(matches.keys()):
         chunk = chunks[chunk_id]
-        response = gpt.answer_question(chunk, details_needed)
+        gpt_response = gpt.answer_question(chunk, details_needed)
 
-        if response.get("answer_found"):
+        if gpt_response.get("answer_found"):
+            # Append the field name and value to the response
+            response['fields_and_values'].append({
+                'field': details_needed,
+                'value': gpt_response['response']
+            })
             break
 
-    # Clean up: remove the temporary file
-    os.remove(temp_file_path)
+    # Save the output to a JSON file
+    output_filename = "output.json"
+    with open(output_filename, "w") as json_file:
+        json.dump(response, json_file, indent=2)
 
-    return jsonify(response)
+    # Clean up: remove the temporary file
+    try:
+        os.remove(temp_file_path)
+        print(f"Removed temporary file: {temp_file_path}")
+    except FileNotFoundError:
+        print(f"FileNotFoundError: {temp_file_path} not found")
+
+    # Render the result on the same page
+    print(response)
+    return render_template('index.html', response=response)
 
 if __name__ == '__main__':
     app.run(debug=True)

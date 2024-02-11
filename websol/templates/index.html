@@ -3,41 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Conversation</title>
+    <title>Auto Invoice Processing</title>
+
+    <style>
+        /* Add styling for form and response layout */
+        body {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;  /* Align items to the top */
+            margin: 20px;  /* Add margin for better spacing */
+        }
+
+        #form-container,
+        #response-container {
+            width: 45%;  /* Adjust the width based on your preference */
+        }
+
+        #form-container {
+            text-align: left;
+        }
+
+        #response-container {
+            text-align: right;
+        }
+
+        #response-container ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;  /* Reset margin to fix layout */
+        }
+
+        #response-container li {
+            margin-bottom: 10px;
+        }
+
+        /* Adjust styling for form fields */
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;  /* Align form items to the top */
+        }
+
+        form label, form input {
+            margin-bottom: 10px;
+        }
+
+        /* Additional styling for better spacing */
+        form input[type="submit"] {
+            margin-top: 10px;
+        }
+    </style>
+
 </head>
 <body>
-    <h1>PDF Conversation</h1>
-    <form action="/process_conversation" method="post" enctype="multipart/form-data">
-        <label for="pdf_file">Choose a PDF file:</label>
-        <input type="file" name="pdf_file" accept=".pdf" required>
-        <br>
-        <label for="details_needed">Details needed (comma-separated):</label>
-        <input type="text" name="details_needed" required>
-        <br>
-        <button type="submit">Ask GPT</button>
-    </form>
-    <div id="result"></div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form');
-            const resultDiv = document.getElementById('result');
+    <!-- Form for uploading PDF and specifying details -->
+    <div id="form-container">
+        <h1>Auto Invoice Processing</h1>
+        <form method="post" action="/process_conversation" enctype="multipart/form-data">
+            <label for="pdf_file">Upload PDF File:</label>
+            <input type="file" name="pdf_file" required>
+            <br>
+            <label for="details_needed">Details Needed:</label>
+            <input type="text" name="details_needed" required>
+            <br>
+            <input type="submit" value="Ask GPT">
+        </form>
+    </div>
 
-            form.addEventListener('submit', async function(event) {
-                event.preventDefault();
-                const formData = new FormData(form);
-                const response = await fetch('/process_conversation', {
-                    method: 'POST',
-                    body: formData,
-                });
-                const result = await response.json();
-
-                if (result.answer_found) {
-                    resultDiv.innerHTML = `<p>GPT: ${result.response}</p>`;
-                } else {
-                    resultDiv.innerHTML = `<p>GPT: I'm sorry, but I can't find that information</p>`;
-                }
-            });
-        });
-    </script>
+    <!-- Display the response -->
+    <div id="response-container">
+        {% if response %}
+            <h2>Response:</h2>
+            <ul>
+                {% for field_value in response['fields_and_values'] %}
+                    <li><strong>{{ field_value.field }}:</strong> {{ field_value.value }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
 </body>
 </html>
