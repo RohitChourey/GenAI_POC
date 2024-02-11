@@ -1,82 +1,112 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-import os
-import pdf_reader
-import lookup
-import gpt
-import json
+from flask import Flask, render_template, request
 from openpyxl import Workbook
-import openai
+import os
+import PyPDF2
+from openai import OpenAI
+import datetime
 
 app = Flask(__name__)
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-if not openai.api_key:
+client = OpenAI()
+# Set up OpenAI API key
+client.api_key = os.getenv("OPENAI_API_KEY")
+if not client.api_key:
     print("ERROR: OpenAI API key not found.")
     exit()
 
-gpt.model = "gpt-3.5-turbo"  # Default model
+# Set up GPT model
+gpt_model = "gpt-3.5-turbo-instruct"  # Change to your desired model
+
+
+def split_pdf_into_chunks(pdf_file, chunk_size=4000, overlap=1000):
+    """
+    Split the PDF document into smaller chunks of text with a specified size limit.
+    """
+    chunks = []
+    chunk = ""
+    with open(pdf_file, "rb") as f:
+        pdf = PyPDF2.PdfReader(f)
+        for page in pdf.pages:
+            chunk += page.extract_text()
+            while len(chunk) > chunk_size:
+                chunks.append(chunk[:chunk_size])
+                chunk = chunk[chunk_size-overlap:]
+
+    if len(chunk):
+        chunks.append(chunk)
+
+    return chunks
+
+
+def generate_test_scripts(chunks):
+    """
+    Generate test scripts based on the chunks of text using OpenAI.
+    """
+    test_scripts = ""
+    for chunk in chunks:
+        prompt = craft_prompt(chunk)  # Craft a prompt for test script generation based on the chunk
+        response = client.completions.create(
+            model=gpt_model,
+            prompt=prompt,
+            max_tokens=1500,  # Adjust based on the model's token limit
+        )
+        test_scripts += response.choices[0].text.strip() + "\n\n"
+    return test_scripts
+
+def craft_prompt(chunk):
+    """
+    Craft a prompt for generating test scripts based on the chunk of text.
+    """
+    # You may need to customize this based on your specific requirements
+    prompt = f"Generate test scripts for the following scenario:\n\n{chunk}\n\nInclude test cases for negative testing, performance testing, etc."
+    return prompt
+
+def write_to_excel(test_scripts, filename):
+    """
+    Write the generated test scripts to an Excel file.
+    
+    """
+
+    wb = Workbook()
+    ws = wb.active
+    ws['A1'] = "Test Scripts"
+    ws.append([""])  # Empty row for spacing
+    ws.append(["Test Script"])
+    for line in test_scripts.split('\n'):
+        ws.append([line])
+    wb.save(filename)
+
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/process_conversation', methods=['POST'])
 def process_conversation():
     pdf_file = request.files['pdf_file']
-    details_needed = request.form['details_needed']
 
     # Save the uploaded file to a temporary location
     temp_file_path = "temp_upload.pdf"
     pdf_file.save(temp_file_path)
 
-    print(f"Saved PDF to: {temp_file_path}")
+    # Split the PDF into chunks
+    chunks = split_pdf_into_chunks(temp_file_path)
 
-    # PDF processing and GPT interaction code
-    chunks = pdf_reader.chunk_pdf(temp_file_path, 4000, 1000)
-    keywords = details_needed.split(",")  # Assuming user provides a comma-separated list of details
-    print(f"Keywords: {keywords}")
-    matches = lookup.find_matches(chunks, keywords)
-    print(f"Matches: {matches}")
+    # Generate test scripts using OpenAI
+    test_scripts = generate_test_scripts(chunks)
 
-    response_text = None
-    excel_filename = None  # Initialize excel_filename variable
+    # Write test scripts to Excel
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")  # Generate timestamp
+    excel_filename = f"test_scripts_{timestamp}.xlsx" 
+    write_to_excel(test_scripts, excel_filename)
 
-    for i, chunk_id in enumerate(matches.keys()):
-        chunk = chunks[chunk_id]
-        gpt_response = gpt.answer_question(chunk, details_needed)
-        print(f"GPT response: {gpt_response}")
+    # Clean up: remove the temporary PDF file
+    os.remove(temp_file_path)
 
-        if gpt_response.get("answer_found"):
-            # Store the generated response
-            response_text = gpt_response['response']
+    # Render the result on the HTML page
+    message = f"Test scripts generated. Excel file stored as '{excel_filename}'"
+    return render_template('index.html', message=message)
 
-            # Create a new Excel workbook
-            wb = Workbook()
-            ws = wb.active
-
-            # Write the response to the Excel workbook
-            ws['A1'] = response_text
-
-            # Save the workbook to a file
-            excel_filename = "openai_response.xlsx"
-            wb.save(excel_filename)
-            print(f"Response stored in '{excel_filename}'")
-            break
-
-    # Clean up: remove the temporary file
-    try:
-        os.remove(temp_file_path)
-        print(f"Removed temporary file: {temp_file_path}")
-    except FileNotFoundError:
-        print(f"FileNotFoundError: {temp_file_path} not found")
-
-    # Render the result with a message containing the Excel file name and location
-    if excel_filename:
-        message = f"Response generated. Excel file stored as '{excel_filename}' in the current directory."
-    else:
-        message = "Response couldn't be generated. No Excel file created."
-    return message
 
 if __name__ == '__main__':
     app.run(debug=True)
