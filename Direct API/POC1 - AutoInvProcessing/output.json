@@ -1,0 +1,8 @@
+{
+  "fields_and_values": [
+    {
+      "field": "invoice number, invoice due date, bank name",
+      "value": "The answer to the question is:\nInvoice Number: INV-3337\nInvoice Due Date: January 31, 2016\nBank Name: ANZ Bank"
+    }
+  ]
+}

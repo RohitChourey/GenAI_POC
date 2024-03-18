@@ -1,0 +1,120 @@
+Code Logic: 
+This RPG source code is used to calculate and print the payroll register based on the employee information and transaction details. It retrieves the employee data from a file and calculates the pay for each employee, including any overtime and bonuses, before printing the register.
+
+Code:
+```rpg
+H DATEDIT(*DMY/) FTRANSACT IP E K DISK FEMPLOYEE IF E K DISK FQSYSPRT O F 80 PRINTER
+```
+- Line 1: This is a header statement that specifies that the date format used in the program will be day/month/year.
+- Line 2: Declares the input file named "TRANSACT" (with an alias of "IP") and specifies that it can be accessed sequentially, meaning one after another.
+- Line 3: Defines a key list for the input file, which is used to retrieve specific records instead of going through the entire file.
+- Line 4: Declares the output file named "EMPLOYEE" (with an alias of "E") and specifies that it can be accessed sequentially.
+- Line 5: Defines a key list for the output file, similar to line 3.
+- Line 6: Declares the output file named "QSYSPRT" (with an alias of "O") and specifies that it can print on an 80-column printer.
+- Line 7: Specifies the output file name (printer type) and print line length.
+- Line 8: Declares a numeric field named "Pay" with a length of 8 and 2 decimal places.
+- Line 9: Declares a character field named "Heading1" with a length of 8 and assigns the heading string for the first line of the register.
+- Line 10: Declares a character field named "Heading2" with a length of 8 and assigns the heading string for the second line of the register.
+- Line 11: Declares a procedure named "CalcPay" with a return type of 8 numeric digits and 2 decimal places.
+- Line 12-13: Declares input parameters for the procedure, specifying the data types and whether the parameters can be used for input, output, or both.
+- Line 14: Begins the free-format RPG code section.
+- Lines 15-16: Retrieves a record from the input file based on the key fields defined in line 3. If the record is found, the data from that record is stored in the fields declared in line 4.
+- Line 17: Calculates the pay for the employee by calling the "CalcPay" procedure and passing in the employee's rate, hours worked, and any bonuses.
+- Line 18: Ends the IF statement.
+- Line 19: Ends the free-format code section.
+- Line 20: Prints the first line of the register, which contains the heading.
+- Line 21: Prints the current date in the specified format.
+- Line 22: Skips a line.
+- Line 23: Prints the second line of the register, which contains the column headings.
+- Line 24: Skips a line.
+- Line 25: Begins the report line layout.
+- Line 26: Prints the transaction number from the input file.
+- Line 27: Prints the employee's name from the output file.
+- Line 28: Prints the employee's pay rate from the output file.
+- Line 29: Prints the number of hours worked from the input file.
+- Line 30: Prints the bonus amount from the input file.
+- Line 31: Prints the calculated pay for the employee.
+- Line 32: Ends the report line layout.
+- Line 33: Begins the report line layout.
+- Line 34: Prints the same information as line 26.
+- Line 35: Prints a message indicating that the employee is not found in the output file.
+- Line 36: Prints the end of the listing.
+- Line 37: Ends the report line layout.
+- Line 38: Calling the "CalcPay" procedure, which was declared in line 11.
+- Line 39-46: Defines the procedure named "CalcPay" and specifies the input parameters and return value.
+- Line 47-50: Begins the free-format code section.
+- Line 51-54: Calculates any overtime pay by multiplying the rate by 1.5 for the additional hours (beyond 40) and assigns it to the "Overtime" field. Then, sets the regular hours worked to 40.
+- Line 55: Returns the calculated pay by multiplying the rate by the hours worked, adding any bonus, and adding the overtime pay (if any).
+- Line 56: Ends the procedure.
+- Line 57: Ends the program.
+
+Python Equivalent:
+
+Code:
+```python
+# Import necessary modules
+import datetime
+
+# Specify the date format
+date_format = '%d%m%y'
+
+# Open the input file
+transact = open('TRANSACT', 'r')
+
+# Open the output file
+employee = open('EMPLOYEE', 'r')
+
+# Retrieve current date and format it
+current_date = datetime.datetime.today().strftime(date_format)
+
+# Output file name and line length
+print_file = open('QSYSPRT', 'w', line_length=80)
+
+# Define a Pay field
+pay = 0.00
+
+# Define the headings
+heading1 = 'NUMBER NAME RATE H- D OURS BONUS PAY'
+heading2 = '______ ________________ ______ _- D ____ _______ __________'
+
+# Define a function for calculating pay
+def calc_pay(rate, hours, bonus):
+  # Declaring a global variable
+  global pay
+  # Checking if hours worked is more than 40
+  if hours > 40:
+    # Calculate overtime pay and assign it to a variable
+    overtime = (hours - 40) * rate * 1.5
+    # Assign 40 hours to regular working hours
+    hours = 40
+  # Calculate regular pay and add bonus
+  pay = (rate * hours) + bonus + overtime
+  # Return the calculated pay
+  return pay
+
+# Get data from input file
+for line in transact:
+  # Split the line into individual fields and store in a list
+  record = line.split()
+  # Get the transaction number from the input file
+  trn_number = record[0]
+  # Get the number of hours worked from the input file
+  trn_hours = int(record[1])
+  # Get the bonus from the input file
+  trn_bonus = float(record[2])
+  
+  # Open the output file again to get data from employee records
+  # Go through each line of the file
+  for emp_record in employee:
+    # Split the line into individual fields and store in a list
+    emp_details = emp_record.split()
+    # Get the employee name from the output file
+    emp_name = emp_details[0]
+    # Get the pay rate from the output file
+    emp_rate = float(emp_details[1])
+    
+    # Calculate pay by calling the calc_pay function
+    pay = calc_pay(emp_rate, trn_hours, trn_bonus)
+    
+    # Print the calculated pay to the output
+

@@ -1,0 +1,54 @@
+To calculate the pay for employees, the code takes information from two different tables then determines the total pay.
+
+The code starts by setting the date editing to DayMonthYear and creating the transaction input file, which will contain the transaction data for the employee. The program then creates the Employee and Sysprint disk files, used for storing employee information and printing the payroll register, respectively. A new variable named "Pay" is declared, having a $8P 2 data type. After that two headings are printed on the Sysprint file. A function is defined named CalcPay which is responsible for doing the pay calculation. So whenever the program needs to calculate the pay, it will call this function.
+
+```RPG
+H DATEDIT(*DMY/)     // Sets the date editing format to DayMonthYear
+FTRANSACT IP E K DISK    // Creates the transaction input file
+FEMPLOYEE IF E K DISK    // Creates the Employee file
+FQSYSPRT O F 80 PRINTER // Creates the Sysprint file with a print line length of 80 
+D Pay S 8P 2            // Declares a $8P 2 variable named "Pay"
+D Heading1 C 'NUMBER NAME RATE H-  // Declares a constant string
+D OURS BONUS PAY '                 // which will be printed on the Sysprint file 
+D Heading2 C '______ ________________ ______ _-  // Declares another constant string
+D ____ _______ __________'                        // which will be printed on the Sysprint file 
+D CalcPay PR 8P 2    // Declares a procedure named "CalcPay" which will return an 8P 2 value
+D Rate 5P 2 VALUE    // Declares an input variable named "Rate" with a 5P 2 type
+D Hours 10U 0 VALUE  // Declares an input variable named "Hours" with a 10 digit type
+D Bonus 5P 2 VALUE   // Declares an input variable named "Bonus" with a 5P 2 type
+\n
+
+
+/CalcPay function
+```
+```rpg
+P CalcPay B 
+D CalcPay PI 8P 2  // Specifies the procedure interface for CalcPay 
+                   //(Type: 8 digit, Precision: 2)
+D Rate 5P 2 VALUE   // Declares the input variable named "Rate" with a 5P 2 type to 
+                   //contain the employee's hourly rate 
+D Hours 10U 0 VALUE // Declares the input variable named "Hours" with a 10 digit 
+                   //type to contain the employee's hours worked 
+D Bonus 5P 2 VALUE  // Declares the input variable named "Bonus" with a 5P 2 type 
+                   //to contain any bonuses the employee earned 
+D Overtime S 5P 2 INZ(0)  // The Overtime variable is used to calculate overtime pay and is initialized to 0 
+/if statement to check if employee is in the employee file 
+/if true, calculate pay and overtime based on hours worked 
+/if employee is not found in employee file, it indicates error and the 
+//"Not on Employee File" message is printed 
+/adding pay, bonus, and overtime to determine total pay for employee 
+/returning total pay value 
+```
+```python
+#defines the CalcPay function, to be called when calculating each employee's pay
+def CalcPay(Rate, Hours, Bonus):
+    if Hours > 40:
+        #calculates overtime pay at time and a half for every hour over 40 hours
+        Overtime = (Hours - 40) * Rate * 1.5
+        Hours = 40 #changes hours worked to 40 to calculate regular pay
+    else:
+        Overtime = 0 #if employee worked less than 40 hours, overtime is 0
+    Pay = Rate * Hours + Bonus + Overtime #calculates total pay for the employee
+    return Pay #returns the total pay for the employee
+```
+

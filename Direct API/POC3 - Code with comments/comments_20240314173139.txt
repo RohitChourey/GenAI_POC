@@ -1,0 +1,131 @@
+The given RGP code is the source code for a payroll register. The code is intended to help users of the system to perform payroll related tasks. The code is designed to take inputs from various sources and generate a payroll report that details data relevant for calculating the salary of employees.
+
+H DATEDIT(*DMY/) 
+    //This line signifies the date format to be used in the program. This is the default format used in RPG.
+
+FTRANSACT IP E K DISK 
+    //Declares a file named 'TRANSACT' and maps it to an external device or database using 'E' as the effective record address.
+
+FEMPLOYEE IF E K DISK 
+    //Declares a file named 'EMPLOYEE' and maps it to an external device or database using 'E' as the effective record address.
+
+FQSYSPRT O F 80 PRINTER 
+    //Declares an output file named 'QSYSPRT' that will generate a printed output of 80 characters per line.
+
+D Pay S 8P 2 
+    //Declares a new data type 'Pay' with a size of 8 digits and 2 decimal places.
+
+D Heading1 C 'NUMBER NAME RATE HOURS BONUS PAY ' 
+    //Declares a new constant 'Heading1' with the value of a string that will be used as the first line of the payroll register report.
+
+D Heading2 C '______ ________________ ______ _____ ______' 
+    //Declares a new constant 'Heading2' with the value of a string that will be used as the second line of the payroll register report.
+
+D CalcPay PR 8P 2 
+    //Specifies a new procedure named 'CalcPay' with a return type of 8 digits and 2 decimal places.
+
+D Rate 5P 2 VALUE 
+    //Declares a new variable 'Rate' with a size of 5 digits and 2 decimal places that will store the rate for an employee.
+
+D Hours 10U 0 VALUE 
+    //Declares a new variable 'Hours' with a size of 10 digits and no decimal places that will store the hours worked by an employee.
+
+D Bonus 5P 2 VALUE 
+    //Declares a new variable 'Bonus' with a size of 5 digits and 2 decimal places that will store the bonus amount for an employee.
+
+/free 
+    //Indicates the start of a free form calculation block.
+
+chain trn_number emp_rec; 
+    //Uses the 'chain' keyword to search for a specific record in the 'EMPLOYEE' file using the employee number stored in the 'trn_number' variable. If found, the record is stored in the 'emp_rec' data structure.
+
+if %found(emp_rec); 
+    //Checks if a record was found using the 'chain' keyword.
+
+pay = CalcPay (emp_rate: trn_hours: trn_bonus); 
+    //Calls the 'CalcPay' procedure to calculate the amount of salary to be paid to the employee. The values of 'emp_rate', 'trn_hours', and 'trn_bonus' are passed as parameters to the procedure.
+
+endif; 
+    //Ends the 'if' block.
+
+/end-free 
+    //Indicates the end of the free form calculation block.
+
+OQSYSPRT H 1P 2 3 
+    //Overlays the system header on the first line of the output file, starting from position 2 with a length of 3 characters.
+
+O 35 'PAYROLL REGISTER' 
+    //Prints the string 'PAYROLL REGISTER' starting from column 35 on the first line of the output file.
+
+O *DATE Y 60 
+    //Prints the system date on the first line of the output file starting from column 60.
+
+O H 1P 2 O 60 Heading1 
+    //Prints the value of 'Heading1' on the first line of the output file starting from column 60.
+
+O H 1P 2 O 60 Heading2 
+    //Prints the value of 'Heading2' on the first line of the output file starting from column 60.
+
+O D N1PN99 2 
+    //Declares a new output device with the name 'N1PN99' and associating it with a 2-digit number.
+
+O TRN_NUMBER 5 
+    //Prints the value of 'TRN_NUMBER' on the output device.
+
+O EMP_NAME 24 
+    //Prints the value of 'EMP_NAME' on the output device.
+
+O EMP_RATE L 33 
+    //Prints the value of 'EMP_RATE' at column 33 on the output device.
+
+O TRN_HOURS L 40 
+    //Prints the value of 'TRN_HOURS' at column 40 on the output device.
+
+O TRN_BONUS L 49 
+    //Prints the value of 'TRN_BONUS' at column 49 on the output device.
+
+O Pay 60 '$ 0. ' 
+    //Prints the value of 'Pay' at column 60 on the output device.
+
+O D N1P 99 2 
+    //Re-declares the previously declared output device with the name 'N1PN99' and associating it with a 2-digit number.
+
+O 35 '** NOT ON EMPLOYEE FILE **' 
+    //Prints the string '** NOT ON EMPLOYEE FILE **' starting from column 35 on the output device.
+
+O T LR 
+    //Writes to the output device and moves the system pointer to a new line.
+
+O 33 'END OF LISTING' 
+    //Prints the string 'END OF LISTING' starting from column 33 on the output device.
+
+P CalcPay B 
+    //The 'CalcPay' procedure is called and control is transferred to the beginning of the procedure.
+
+D CalcPay PI 8P 2 
+    //Defines the procedure interface for the 'CalcPay' procedure with a return type of 8 digits and 2 decimal places.
+
+D Rate 5P 2 VALUE 
+    //Defines the 'Rate' variable as an input parameter with a size of 5 digits and 2 decimal places.
+
+D Hours 10U 0 VALUE 
+    //Defines the 'Hours' variable as an input parameter with a size of 10 digits and no decimal places.
+
+D Bonus 5P 2 VALUE 
+    //Defines the 'Bonus' variable as an input parameter with a size of 5 digits and 2 decimal places.
+
+D Overtime S 5P 2 INZ(0) 
+    //Defines the 'Overtime' variable as a local variable with a size of 5 digits and 2 decimal places, and initializes it to 0.
+
+/free 
+    //Indicates the start of a free form calculation block.
+
+if Hours > 40; 
+    //Checks if the value of 'Hours' is greater than 40.
+
+Overtime = (Hours - 40) * Rate * 1.5; 
+    //Calculates the amount of overtime pay by multiplying the number of overtime hours by the hourly rate multiplied by 1.5.
+
+Hours = 40; 
+    //Assigns the value of 40
+

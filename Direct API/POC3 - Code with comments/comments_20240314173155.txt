@@ -1,0 +1,72 @@
+The given code is for a Payroll system in RPG. It has a declared file called "FTRANSACT" to store transaction records and "FEMPLOYEE" to store employee records. It has a procedure "CalcPay" to calculate the payment for the employee based on their rate, hours worked, and bonus. It starts by checking if there is a record found in the employee file for the given transaction number. If found, it calculates the payment using the CalcPay procedure and prints it on the printer file "FQSYSPRT". If not found, it prints a message saying the transaction number is not on the employee file. Finally, it prints the end of the listing message. 
+
+Code Comment:
+H DATEDIT(*DMY/) FTRANSACT IP E K DISK
+FEMPLOYEE IF E K DISK
+
+- H DATEDIT(*DMY/) - this is a header declaration which specifies the format of the dates used in the code (DD/MM/YYYY).
+- FTRANSACT IP E K DISK - this declares a file named FTRANSACT to be used to store transaction records. The "IP" keyword indicates that this is an input file. The "E" keyword indicates that this file is externally defined. The "K" keyword indicates that records will be added to this file in key sequence. The "DISK" keyword specifies that the file will be accessed via disk.
+- FEMPLOYEE IF E K DISK - this declares a file named FEMPLOYEE to store employee records. The "IF" keyword is used to specify that this file will only be used for input operations. The "E" keyword indicates that this file is externally defined. The "K" keyword indicates that records will be added to this file in key sequence. The "DISK" keyword specifies that the file will be accessed via disk.
+
+FQSYSPRT O F 80 PRINTER
+- FQSYSPRT - this is the output file used to print the payroll register
+- O - this keyword indicates that this file is used for output operations
+- F 80 - this defines the width of the printer file to be 80 characters
+- PRINTER - this keyword indicates that this file will be used for printing
+
+D Pay S 8P 2
+D Heading1 C 'NUMBER NAME RATE H-
+D OURS BONUS PAY '
+D Heading2 C '______ ________________ ______ _-
+D ____ _______ __________'
+- D Pay S 8P 2 - this defines a variable named "Pay" with a size of 8 characters and 2 decimal places. It will be used to store the calculated payment amount.
+- D Heading1 C 'NUMBER NAME RATE H- D OURS BONUS PAY ' - this defines a constant field "Heading1" with a label "Number, Name, Rate, Hours, Bonus, Pay". This will be used in the format statement for the printer file.
+- D Heading2 C '______ ________________ ______ _- D ____ _______ __________' - this defines a constant field "Heading2" with a label "Number, Name, Rate, Hours, Bonus, Pay". This will be used in the format statement for the printer file.
+
+D CalcPay PR 8P 2
+D Rate 5P 2 VALUE
+D Hours 10U 0 VALUE
+D Bonus 5P 2 VALUE
+- D CalcPay PR 8P 2 - this declares a procedure "CalcPay" with a return value of size 8 characters and 2 decimal places.
+- D Rate 5P 2 VALUE - this declares a variable "Rate" with a size of 5 characters and 2 decimal places. The "VALUE" keyword specifies that this variable will be passed by value to the procedure.
+- D Hours 10U 0 VALUE - this declares a variable "Hours" with a size of 10 characters and no decimal places. The "VALUE" keyword specifies that this variable will be passed by value to the procedure.
+- D Bonus 5P 2 VALUE - this declares a variable "Bonus" with a size of 5 characters and 2 decimal places. The "VALUE" keyword specifies that this variable will be passed by value to the procedure.
+
+Chain trn_number emp_rec;
+if %found(emp_rec);
+- Chain trn_number emp_rec; - this performs a key operation on the "FEMPLOYEE" file to search for a record with the given transaction number. The result is stored in the "emp_rec" record format.
+- if %found(emp_rec); - this checks if the "FEMPLOYEE" file has found a record with the given transaction number. If found, it will calculate the payment for the employee using the CalcPay procedure.
+
+pay = CalcPay (emp_rate: trn_hours: trn_bonus);
+- pay = CalcPay (emp_rate: trn_hours: trn_bonus); - this calls the CalcPay procedure with the employee's rate, hours worked, and bonus as parameters. The calculated payment amount is stored in the "pay" variable.
+
+OQSYSPRT H 1P 2
+3 O 35 'PAYROLL REGISTER'
+O *DATE Y 60
+O H 1P 2
+O 60 Heading1
+O H 1P 2
+O 60 Heading2
+- OQSYSPRT H 1P 2 - this prints a line of heading at column 1, row 2 on the printer file.
+- 3 O 35 'PAYROLL REGISTER' - this prints the title "Payroll Register" at column 35, row 3 on the printer file.
+- O *DATE Y 60 - this prints the current date at column 60 on the printer file.
+- O H 1P 2 - this prints a line of heading at column 1, row 2 on the printer file.
+- O 60 Heading1 - this prints the constant field "Heading1" at column 60 on the printer file.
+- O H 1P 2 - this prints a line of heading at column 1, row 2 on the printer file.
+- O 60 Heading2 - this prints the constant field "Heading2" at column 60 on the printer file.
+
+OD N1PN99 2
+O TRN_NUMBER 5
+O EMP_NAME 24
+O EMP_RATE L 33
+O TRN_HOURS L 40
+O TRN_BONUS L 49
+O Pay 60 '$ 0. '
+- OD N1PN99 2 - this prints a line of detail at column 1, row 2 on the printer file.
+- O TRN_NUMBER 5 - this prints the transaction number at column 5 on the printer file.
+- O EMP_NAME 24 - this prints the employee's name at column 24 on the printer file.
+- O EMP_RATE L 33 - this prints the employee's rate at column 33 on the printer file.
+- O TRN_HOURS L 40 - this prints the transaction hours at column 40 on the printer file.
+- O TRN_BONUS L 49 - this prints the transaction bonus at column 49 on the printer file.
+- O Pay
+

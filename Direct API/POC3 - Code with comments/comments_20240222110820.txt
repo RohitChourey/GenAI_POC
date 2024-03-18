@@ -1,0 +1,63 @@
+Response:
+        The RPG code is a simple program for computing the payroll for a company. 
+
+        The program begins by getting the current date as input from the user. It also defines two files - FTRANSACT and FEMPLOYEE which will be used to store the transaction data and employee data respectively. It also defines a printer file - FQSYSPRT which will be used to print the final payroll register. 
+
+        The program then declares a variable called Pay which will store the final calculated payment value. It also defines two headings - Heading1 and Heading2 which will be used for printing the header of the payroll register.
+
+        After declaring the necessary variables and files, the program enters the free format calculations section where the payroll calculation takes place. It uses the built-in function CHAIN to retrieve the employee record based on the transaction number - trn_number. If there is a match, it calculates the pay for the employee using the user-defined function CalcPay and stores it in the variable Pay.
+
+        After the free format calculations, the program enters the printer file output section where it prints the payroll register. First, it prints the title of the register, followed by the current date. Then, it prints the two headings defined earlier. After that, it prints the employee details and the corresponding calculated pay.
+
+        If there is no match found for the transaction number in the employee file, it prints an error message stating that the employee is not on the file.
+
+        Finally, the program prints the end of the listing and ends.
+
+        Code with Comments:
+
+        ```
+        H DATEDIT(*DMY/) FTRANSACT IP E K DISK FEMPLOYEE IF E K DISK FQSYSPRT O F 80 PRINTER 
+
+        D Pay S 8P 2                 // Definition of the variable Pay which will store the final calculated payment
+        D Heading1 C 'NUMBER NAME RATE H-     // Definition of the first heading for printing
+        D OURS BONUS PAY '
+        D Heading2 C '______ ________________ ______ _-     // Definition of the second heading for printing
+        D ____ _______ __________' 
+        D CalcPay PR 8P 2              // Definition of the user-defined function CalcPay and its return type
+        D Rate 5P 2 VALUE              // Parameters passed to the function - Rate, Hours, Bonus
+        D Hours 10U 0 VALUE 
+        D Bonus 5P 2 VALUE 
+        /free                           // Beginning of free format calculations section
+        chain trn_number emp_rec;       // Retrieving employee record based on transaction number
+        if %found(emp_rec);             // Check if record is found
+        pay = CalcPay (emp_rate: trn_hours: trn_bonus);      // Calculation of payroll using CalcPay function
+        endif; 
+        /end-free                       // End of free format calculations section
+        
+
+        OQSYSPRT H 1P 2 3 O 35 'PAYROLL REGISTER' O *DATE Y 60 O H 1P 2 O 60 Heading1 O H 1P 2 O 60 Heading2 O      
+        // Printing the title of the register and current date
+        D N1PN99 2 O TRN_NUMBER 5 O EMP_NAME 24 O EMP_RATE L 33 O TRN_HOURS L 40 O TRN_BONUS L 49 O Pay 60 '$ 0. ' 
+        // Printing the employee details and corresponding calculated pay
+
+        D N1P 99 2 O TRN_NUMBER 5 O 35 '** NOT ON EMPLOYEE FILE **' O T LR O 
+        // Printing error message if no match is found in the employee file
+        33 'END OF LISTING' 
+        // Printing the end of the listing
+        P CalcPay B 
+        D CalcPay PI 8P 2               // Definition of the user-defined function CalcPay and its return type
+        D Rate 5P 2 VALUE               // Parameters passed to the function - Rate, Hours, Bonus
+        D Hours 10U 0 VALUE           
+        D Bonus 5P 2 VALUE 
+        D Overtime S 5P 2 INZ(0)        // Definition of the variable Overtime which will store the calculated overtime pay
+        /free 
+        if Hours > 40;                  // Check if the employee has worked more than 40 hours
+        Overtime = (Hours - 40) * Rate * 1.5;     // Calculation of overtime pay for the extra hours worked
+        Hours = 40;                     // Update the total hours to 40
+        endif; 
+        return(H) Rate * Hours + Bonus + Overtime;     // Return the final calculated payment
+        /end-free 
+
+        P CalcPay E                      // End of user-defined function CalcPay
+        ```
+

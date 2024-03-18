@@ -1,0 +1,122 @@
+This RPG source code is used for performing payroll transactions. It takes input data from two files - FTRANSACT and FEMPLOYEE, calculates the payment details, and prints it on the PRINTER file. The code begins by defining the date format and declaring the necessary variables. It then defines a function for calculating the payment details and sets a header for the output. Finally, the code iterates through each transaction and employee record, calculates their payments using the defined function, and prints the details on the output file.
+
+H DATEDIT(*DMY/) FTRANSACT IP E K DISK 
+FEMPLOYEE IF E K DISK 
+FQSYSPRT O F 80 PRINTER 
+- These lines define the date format and the file structures of the input and output files.
+
+D Pay S 8P 2 
+D Heading1 C 'NUMBER NAME RATE H- 
+D OURS BONUS PAY ' 
+D Heading2 C '______ ________________ ______ _- 
+D ____ _______ __________' 
+- These lines declare the necessary variables and set headings for the output.
+
+D CalcPay PR 8P 2 
+D Rate 5P 2 VALUE 
+D Hours 10U 0 VALUE 
+D Bonus 5P 2 VALUE 
+- This defines a function for calculating the payment details based on the input variables - rate, hours, and bonus.
+
+/free chain trn_number emp_rec; 
+// Chain statement searches for a specific record in a file, which in this case is the transaction number in the FTRANSACT file. If the record is found, it moves on to the next line of code.
+if %found(emp_rec); 
+// %found function checks if the specified record was found.
+pay = CalcPay (emp_rate: trn_hours: trn_bonus); 
+// This line calls the CalcPay function and passes the input variables to it. It then assigns the calculated payment to the 'pay' variable.
+endif; 
+/end-free 
+- These lines iterate through each transaction record and calculate the payment for that transaction using the CalcPay function. If the employee record is found in the FEMPLOYEE file, the payment details are calculated and assigned to the 'pay' variable.
+
+OQSYSPRT H 1P 2 
+3 O 35 'PAYROLL REGISTER' 
+O *DATE Y 60 
+O H 1P 2 
+O 60 Heading1 
+O H 1P 2 
+O 60 Heading2 
+- These lines set the heading and formatting for the output on the PRINTER file.
+
+O D N1PN99 2 
+O TRN_NUMBER 5 
+O EMP_NAME 24 
+O EMP_RATE L 33 
+O TRN_HOURS L 40 
+O TRN_BONUS L 49 
+O Pay 60 '$ 0. ' 
+- These lines specify the fields to be printed on the output file, including the transaction number, employee name, rate, hours, bonus, and payment.
+
+O D N1P 99 2 
+O TRN_NUMBER 5 
+O 35 '** NOT ON EMPLOYEE FILE **' 
+O T LR 
+- These lines are used to print a message if the employee record is not found in the FEMPLOYEE file.
+
+O 33 'END OF LISTING' 
+- This line marks the end of the output on the PRINTER file.
+
+P CalcPay B 
+D CalcPay PI 8P 2 
+D Rate 5P 2 VALUE 
+D Hours 10U 0 VALUE 
+D Bonus 5P 2 VALUE 
+D Overtime S 5P 2 INZ(0) 
+/free 
+// This is the beginning of the CalcPay function, and it defines the input variables (rate, hours, and bonus) and an overtime variable.
+if Hours > 40; 
+// This line checks if the input hours are greater than 40. If yes, it calculates the overtime payment and assigns it to the overtime variable while setting the hours to 40.
+Overtime = (Hours - 40) * Rate * 1.5; 
+Hours = 40; 
+endif; 
+return(H) Rate * Hours + Bonus + Overtime; 
+// This line calculates the payment by multiplying the rate and hours and adding the bonus and overtime payments to it. It then returns the value to the pay variable in the main code.
+/end-free 
+- This is the end of the CalcPay function, and it calculates the payment using the input variables and returns it to the main code.
+
+Python Code:
+
+# Import necessary libraries and packages
+import datetime
+import pandas as pd
+
+# Define input and output file structures
+inputs = {'FTRANSACT': {'format': 'IP, key: trn_number'},
+'FEMPLOYEE': {'format': 'IP, key: emp_id'},
+'FQSYSPRT': {'format': 'O, file_length: 80, printer: True'}}
+
+# Define necessary variables
+pay = None
+heading1 = 'NUMBER NAME RATE H- D OURS BONUS PAY'
+heading2 = '______ ________________ ______ _- D ____ _______ __________'
+
+# Function for calculating payment
+def calc_pay(rate, hours, bonus):
+    overtime = 0
+    # Check for overtime
+    if hours > 40:
+        overtime = (hours - 40) * rate * 1.5
+        hours = 40
+    # Calculate payment
+    return rate * hours + bonus + overtime
+
+# Set header for output
+output = ['TODAY DATE: %s' % datetime.datetime.now().strftime('%d/%m/%y')]
+output.append(heading1)
+output.append(heading2)
+
+# Iterating through each transaction and employee record
+for trn in FTRANSACT:
+    # Searching for transaction record in FTRANSACT file
+    emp_rec = FEMPLOYEE[trn['trn_number']]
+    if emp_rec:
+        # If record is found, calculate payment using the defined function
+        pay = calc_pay(emp_rec['emp_rate'], trn['trn_hours'], trn['trn_bonus'])
+    else:
+        # If record is not found, print a message
+        output.append('** NOT ON EMPLOYEE FILE **')
+    # Add payment details to output
+    output.append('%s %s $%.2f' % (trn['trn_number'], emp_rec['emp_name'], pay))
+
+# Print output
+print('\n'.join(output))
+

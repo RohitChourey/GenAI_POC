@@ -1,0 +1,66 @@
+You could name functions other than Record transactor and CalcPay, also variables names will make more sense for a pythonic viewpoint.
+
+This code is calculating the payroll of employees. It checks if an employee exists in the employee record and if that is true, it uses the CalcPay function to calculate the total pay considering the bonus and over time charges if available, then it write this information into the Payroll register file.
+
+Line 1-3: Inspecting the date formate of the file
+Line 4: Declaring and formatting the file TRANSACT
+Line 5: Input the employee's pay information to the file
+Line 6: Declare a file EMPLOYEE only for read access if found
+Line 7: Declare a file QSYSPRT with only print access with 80 characters per line
+Line 8: Declare a variable called Pay with data type 8 digits and 2 decimal points
+Line 9: Define the first line of the heading for payroll register
+Line 10: Define the second line of the heading for payroll register
+Line 11: Defining the name of the function CalcPay 
+Line 12: Declare CalcPay function with 4 parameters of different data types
+             Pay rate with a 5 digit number and 2 decimal points
+             Number of hours with a 10-digit integer number
+             Bonus earned with a 5 digit number and 2 decimal points
+Line 13: Defining the first line of the heading for payroll register in H column
+Line 14-15: Give *DATE, Y= Before the number without a sign beforethe character 60 from right margin on OUTPUT QSYSPRT
+Line 16: Write the first heading line
+Line 17: Move the number of characters available and the number oflines freezeto Calling EOP in  H column
+Line 18: Write the payroll register header
+Line 19: Specifyand determine which printing function to use
+Line 20-24: Print TRN_NUMBER and  EMP_NAME information
+Line 25-49: Perform the calculation to determine the payment for the employee, display the "end of listing" message if the employee is not found in the employee file
+Line 50: Terminate the T-spooled file
+Line 51: Terminate this process
+
+Syntax for Python(i assumed the data to be from a CSV file)
+
+# Import modules
+import pandas as pd
+
+# Define function to calculate the pay
+def calc_pay(rate, hours, bonus):
+    # Check if the employee worked over time and calculate overtime pay
+    if hours > 40:
+        overtime = (hours - 40) * rate * 1.5
+        hours = 40 # Set regular work hours to 40
+    else:
+        overtime = 0 # Set overtime to 0 if not applicable
+    
+    # Calculate total pay
+    total_pay = rate * hours + bonus + overtime
+    
+    # Return value
+    return total_pay
+    
+# Read the employee data from CSV file
+employee_df = pd.read_csv("employee_data.csv")
+
+# Loop through each employee row
+for i in range(len(employee_df)):
+    # Retrieve employee information
+    emp_id = employee_df.loc[i, 'employee_id']
+    emp_name = employee_df.loc[i, 'employee_name']
+    emp_rate = employee_df.loc[i, 'rate']
+    trn_hours = employee_df.loc[i, 'hours']
+    trn_bonus = employee_df.loc[i, 'bonus']
+    
+    # Calculate pay using defined function
+    pay = calc_pay(emp_rate, trn_hours, trn_bonus)
+    
+    # Print employee information and pay
+    print(f"{emp_id} {emp_name} has a total pay of ${pay}.")
+

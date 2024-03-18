@@ -1,0 +1,120 @@
+The above chunk of code demonstrates the source code for an RPG RPG (Report Program Generator) source code which is used for creating reports. This particular code is written for an RPG report called 'Payroll Register' and it calculates employee pays based on their rate, hours worked and any bonus they may have earned. 
+
+- H DATEDIT(*DMY/) FTRANSACT IP E K DISK FEMPLOYEE IF E K DISK FQSYSPRT O F 80 PRINTER
+    The first line sets the date format to day/month/year and also defines a printer, called "TRANSACCT", that will be used to print the report. 
+    The second line opens the file named "EMPLOYEE" and defines it as a key field. 
+    The third line opens a file named "QSYSPRT" which is used for printing. 
+    The fourth line specifies that the output will be printed on an 80 column printer.
+
+- D Pay S 8P 2
+    This line declares a variable named "Pay" that can hold up to 8 digits, with 2 of them being decimal points. 
+
+- D Heading1 C 'NUMBER NAME RATE HOURS BONUS PAY'
+    This line defines a constant value for the heading of the report. 
+
+- D Heading2 C '______ ________________ ______ ______ ______'
+    This line defines a constant value for the underline of the heading. 
+
+- D CalcPay PR 8P 2
+    This line starts a procedure declaration named "CalcPay" that will return a value of 8 digits with 2 decimal points. 
+
+- D Rate 5P 2 VALUE
+    This line declares a decimal variable named "Rate" that can hold up to 5 digits with 2 decimal points. 
+    It also specifies that this variable will be initialized with a value when it is called in the procedure. 
+
+- D Hours 10U 0 VALUE
+    This line declares an unsigned integer variable named "Hours" that can hold up to 10 digits without any decimal points. 
+    It also specifies that this variable will be initialized with a value when it is called in the procedure. 
+
+- D Bonus 5P 2 VALUE
+    This line declares a decimal variable named "Bonus" that can hold up to 5 digits with 2 decimal points. 
+    It also specifies that this variable will be initialized with a value when it is called in the procedure. 
+
+- chain trn_number emp_rec;
+if %found(emp_rec);
+    This block of code is used to check if there is a matching record for the transaction number (trn_number) in the employee file (emp_rec). 
+    If a match is found, the code will proceed to calculate the pay for the employee. 
+
+- pay = CalcPay (emp_rate: trn_hours: trn_bonus);
+    This line calls the procedure "CalcPay" and passes in the values for employee rate, hours worked and bonus earned. 
+    The returned value is then assigned to the variable "pay". 
+
+- /end-free
+    Ends the free-format RPG code. 
+
+- OQSYSPRT H 1P 2 3
+    This line specifies the beginning of the output and sets the horizontal position to 3 and the vertical position to 1. 
+
+- O 35 'PAYROLL REGISTER'
+    This line prints the heading "PAYROLL REGISTER" starting from column 35. 
+
+- O *DATE Y 60
+    This line prints the current date starting from column 60. 
+
+- O H 1P 2 O 60 Heading1
+    This line prints the heading1 constant value starting from column 60. 
+    It also sets the horizontal position back to 1 and the vertical position to 2. 
+
+- O H 1P 2 O 60 Heading2
+    This line prints the heading2 constant value starting from column 60. 
+    It also sets the horizontal position back to 1 and the vertical position to 2. 
+
+- O D N1PN99 2
+    This line prints the content of the field N1PN99 starting from the current column. 
+    It also sets the horizontal position back to 2 and the vertical position to 2. 
+
+- O TRN_NUMBER 5
+    This line prints the content of the field TRN_NUMBER starting from the current column. 
+    It also sets the horizontal position back to 5. 
+
+- O EMP_NAME 24
+    This line prints the content of the field EMP_NAME starting from the current column. 
+    It also sets the horizontal position back to 24. 
+
+- O EMP_RATE L 33
+    This line prints the content of the field EMP_RATE starting from the current column. 
+    It also sets the horizontal position back to 33. 
+    The "L" in the code means that the value will be printed on the same line as the previous value. 
+
+- O TRN_HOURS L 40
+    This line prints the content of the field TRN_HOURS starting from the current column. 
+    It also sets the horizontal position back to 40. 
+    The "L" in the code means that the value will be printed on the same line as the previous value. 
+
+- O TRN_BONUS L 49
+    This line prints the content of the field TRN_BONUS starting from the current column. 
+    It also sets the horizontal position back to 49. 
+    The "L" in the code means that the value will be printed on the same line as the previous value. 
+
+- O Pay 60 '$ 0. '
+    This line prints the content of the variable Pay starting from column 60. 
+    It also sets the format to print the value with a '$' and 2 decimal points. 
+
+- O D N1P 99 2
+    This line prints the content of the field N1PN99 starting from the current column (which should be 5). 
+    It also sets the horizontal position back to 2 and the vertical position to 2. 
+
+- O TRN_NUMBER 5
+    This line prints the content of the field TRN_NUMBER starting from the current column. 
+    It also sets the horizontal position back to 5. 
+
+- O 35 '** NOT ON EMPLOYEE FILE **'
+    This line prints an error message starting from column 35 if there is no matching record found for the transaction number. 
+
+- O T LR
+    This line indicates the end of the output. 
+
+- O 33 'END OF LISTING'
+    This line prints a message for the end of the report starting from column 33. 
+
+- P CalcPay B
+    This line indicates the end of the procedure declaration. 
+
+- D CalcPay PI 8P 2
+    This line starts the procedure interface for the procedure "CalcPay". 
+    It specifies the parameters that need to be passed into the procedure. 
+
+- D Rate 5P 2 VALUE
+    This line declares a decimal variable named "Rate" that can hold up to 5 digits with 2 decimal points. 
+    It also specifies that this variable will be initialized with a value when it
+

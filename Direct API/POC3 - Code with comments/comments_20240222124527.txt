@@ -1,0 +1,26 @@
+First part:
+
+  The code above is RPG (Report Program Generator) source code that is used to generate a payroll register. The register is used to keep track of employee information and payroll data. The program retrieves data from two different files, FTRANSACT and FEMPLOYEE, and calculates the payroll amount using the CalcPay subroutine. The final output is printed on a printer using FQSYSPRT.
+
+  Second part:
+
+  Line 1-5: Declaring D-specs (Data specifications) to define the program attributes. Datedit is set to *DMY which means that the date will be displayed using the Day-Month-Year format. FTRANSACT and FEMPLOYEE are defined as input files and FQSYSPRT is defined as the output file. FEMPLOYEE will contain employee information and FTRANSACT will contain transaction data. Heading1 and Heading2 are variables used to print column headers on the output file. Finally, the calculation result (Pay) is declared as a scalable numeric variable with 8 digits and 2 decimal places.
+
+  Line 9-10: CalcPay subroutine is declared with its input parameters (Rate, Hours, Bonus) and the return type (8P 2) which means 8 digits and 2 decimal places.
+
+  Line 11-17: The program enters into free-format calculations. The CHAIN operation retrieves the record from FTRANSACT using the transaction number as the key. If a record is found, CalcPay subroutine is called to calculate the payroll amount using the employee's rate, hours and bonus. The calculated amount is stored in the variable "pay".
+
+  Line 18-21: The output file OQSYSPRT is opened with page size 80 for printing.
+
+  Line 23-25: The first line of the output file contains the heading - PAYROLL REGISTER. The *DATE opcode is used to print the current date on the output file.
+
+  Line 27-30: The next line contains the column headers which are defined in Heading1 and Heading2.
+
+  Line 31-46: The O operation is used to print the transaction number, employee name, rate, hours, bonus and pay for each employee record found in FTRANSACT.
+
+  Line 47-52: The output file is then closed by using the T opcode. LR stands for *INLR (Leading indicator) and is set as *ON to denote the end of the program.
+
+  Line 54-58: The CalcPay subroutine is defined using the B/E opcode for beginning and ending. The calculation takes into account the overtime pay if an employee has worked more than 40 hours.
+
+  Line 60-61: The subroutine returns the calculated payroll amount.
+
